@@ -7,9 +7,9 @@ namespace AlfaSoft.NobelPrizeLaureates
     class Prizes
     {
         public string Name { get; set; }
-        public DateTime Year { get; set; }
+        public int Year { get; set; }
 
-        public Prizes(string name, DateTime year)
+        public Prizes(string name, int year)
         {
             Name = name;
             Year = year;
