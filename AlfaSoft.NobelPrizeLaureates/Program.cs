@@ -102,9 +102,6 @@ namespace AlfaSoft.NobelPrizeLaureates
 
         public static void DirectoryChooser()
         {
-            Console.WriteLine("Directory (full path) to a file:");
-            directoryStr = Console.ReadLine();
-
             //If the file directory is incorrect or not accessible let the user know and try again:
             do
             {
@@ -113,7 +110,7 @@ namespace AlfaSoft.NobelPrizeLaureates
                     Console.WriteLine("File validation failed. Make sure the file is of valid type (.txt)");
                 }
 
-                Console.WriteLine("Please, insert a directory (full path. Ex.: C:\\Users\\Administrator\\Desktop\\File Ex\\Example.txt) to a file:");
+                Console.WriteLine("Directory (full path. Ex.: C:\\Users\\Administrator\\Desktop\\File Ex\\Example.txt) to a file:");
                 directoryStr = Console.ReadLine();
 
             } while (string.IsNullOrEmpty(directoryStr) && !File.Exists(directoryStr));
@@ -122,59 +119,79 @@ namespace AlfaSoft.NobelPrizeLaureates
 
         public static void AppLastOpened()
         {
-            //To save last time it was opened
-            DateTime appOpen = DateTime.Now;
-            Logger("App was opened in: " + appOpen);
-
-            //If the txt doesn't exist it will be created
-            bool txtExists = File.Exists(Directory.GetCurrentDirectory() + "\\AppLastClose.txt");
-            if (!txtExists)
+            try
             {
-                File.CreateText(Directory.GetCurrentDirectory() + "\\AppLastClose.txt");
-                //Since the file wasn't created it will skip the cooldown check
-                return;
+                //To save last time it was opened
+                DateTime appOpen = DateTime.Now;
+                Logger("App was opened in: " + appOpen);
+
+                //If the txt doesn't exist it will be created
+                bool txtExists = File.Exists(Directory.GetCurrentDirectory() + "\\AppLastClose.txt");
+                if (!txtExists)
+                {
+                    File.CreateText(Directory.GetCurrentDirectory() + "\\AppLastClose.txt");
+                    //Since the file wasn't created it will skip the cooldown check
+                    return;
+                }
+
+                DateTime lastClose = DateTime.Parse(File.ReadAllText(Directory.GetCurrentDirectory() + "\\AppLastClose.txt"));
+                Logger("App was last closed in: " + lastClose);
+                TimeSpan span = appOpen.Subtract(lastClose);
+
+                //Calculation in case the last time opened the app was under 60 seconds therefore a cooldown was needed
+                if (span.TotalSeconds > 60)
+                {
+                    Console.WriteLine("App was last closed on: " + lastClose + " which was " + span.TotalMinutes + " minutes ago.");
+
+                }
+                else
+                {
+                    appWasRan60sAgo = false;
+                    Console.WriteLine("App was last closed on: " + lastClose + " which was " + span.TotalSeconds + " seconds ago.");
+                    Console.WriteLine("Please wait " + (span.TotalSeconds - 60) + " seconds in order to be able to make requests");
+                    int secondsSleep = 60 - span.Seconds;
+                    secondsSleep = Convert.ToInt32(secondsSleep.ToString() + "000");
+                    Thread.Sleep(secondsSleep);
+                    Console.WriteLine("Waiting time complete! Please continue");
+                }
             }
-
-            DateTime lastClose = DateTime.Parse(File.ReadAllText(Directory.GetCurrentDirectory() + "\\AppLastClose.txt"));
-            Logger("App was last closed in: " + lastClose);
-            TimeSpan span = appOpen.Subtract(lastClose);
-
-            //Calculation in case the last time opened the app was under 60 seconds therefore a cooldown was needed
-            if(span.TotalSeconds > 60)
+            catch (Exception e)
             {
-                Console.WriteLine("App was last closed on: " + lastClose + " which was " + span.TotalMinutes + " minutes ago.");
-
+                Logger(e.ToString());
+                Logger("If this problem persists go to your 'AppLastClose.txt' location and delete it or try adding the following date '17/06/2022 17:07:36'");
+                ClosingApp(false);
+                throw;
             }
-            else
-            {
-                appWasRan60sAgo = false;
-                Console.WriteLine("App was last closed on: " + lastClose + " which was " + span.TotalSeconds + " seconds ago.");
-                Console.WriteLine("Please wait " + (span.TotalSeconds - 60) + " seconds in order to be able to make requests");
-                int secondsSleep = 60 - span.Seconds;
-                secondsSleep = Convert.ToInt32(secondsSleep.ToString() + "000");
-                Thread.Sleep(secondsSleep);
-                Console.WriteLine("Waiting time complete! Please continue");
-            }
+            
         }
 
         public static void ClosingApp(bool success)
         {
-            if (success)
+            try
             {
-                //5 seconds timer before the app closing + saving the last time the app was opened on txt
-                Console.WriteLine("Closing console in 5 seconds ...");
-                Thread.Sleep(5000);
-                File.WriteAllText(Directory.GetCurrentDirectory() + "\\AppLastClose.txt", DateTime.Now.ToString());
-                Logger("App closing with sucess at: " + DateTime.Now);
-            }
-            else
-            {
-                Console.WriteLine("Closing app with no changes made");
-                Logger("App closed with no new changes at: " + DateTime.Now);
-            }
+                if (success)
+                {
+                    //5 seconds timer before the app closing + saving the last time the app was opened on txt
+                    Console.WriteLine("Closing console in 5 seconds ...");
+                    Thread.Sleep(5000);
+                    File.WriteAllText(Directory.GetCurrentDirectory() + "\\AppLastClose.txt", DateTime.Now.ToString()); //Bug here after logger was added.. To fix add date on said txt
+                    Logger("App closing with sucess at: " + DateTime.Now);
+                }
+                else
+                {
+                    Console.WriteLine("Closing app with no changes made");
+                    Logger("App closed with no new changes at or an error: " + DateTime.Now);
+                }
 
-            Logger("################################################### App Closing ###################################################");
-            Environment.Exit(0);
+                Logger("################################################### App Closing ###################################################");
+                Environment.Exit(0);
+            }
+            catch (Exception e)
+            {
+                Logger(e.ToString());
+                Logger("If this problem persists go to your 'AppLastClose.txt' location and delete it or try adding the following date '17/06/2022 17:07:36'");
+                throw;
+            }
         }
 
         public static void Logger(string logStr)
