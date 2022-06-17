@@ -12,6 +12,7 @@ namespace AlfaSoft.NobelPrizeLaureates
         static bool appWasRan60sAgo = true;
         static void Main(string[] args)
         {
+            Logger("################################################### App Initialize ###################################################");
             //Check when was the last time the app was opened
             AppLastOpened();
 
@@ -37,6 +38,7 @@ namespace AlfaSoft.NobelPrizeLaureates
                         Console.WriteLine("Directory not found or not accessible, please review this matter before proceeding..");
                         DirectoryChooser();
                     }
+                    Logger("The work directory in this session used was: " + directoryStr);
                     //Finally, If the file exists and is the correct path
                     ArchiveProcessor();
                 }
@@ -48,6 +50,7 @@ namespace AlfaSoft.NobelPrizeLaureates
             else
             {
                 DirectoryChooser();
+                Logger("The work directory in this session used was: " + directoryStr);
                 ArchiveProcessor();
             }
 
@@ -58,6 +61,7 @@ namespace AlfaSoft.NobelPrizeLaureates
         {
             //archive process here...
             Console.WriteLine("Initializing archive processing ...");
+            Logger("Initializing archive processing");
             //Get all txt lines to array
             string[] lines = File.ReadAllLines(directoryStr);
 
@@ -81,10 +85,13 @@ namespace AlfaSoft.NobelPrizeLaureates
                 {
                     Console.WriteLine("Saving the category '" + name + "' and year '" + year + "'. Please wait ...");
                     Prizes prizes = new Prizes(name, year);
+
+                    Logger("New entry saved with the following Category/Year: " + name + "/" + year);
                     name = "";
                     year = 0;
 
                     //save to db ...
+                    //api??
 
                     Console.WriteLine("Waiting 15 seconds before the next request ...");
                     Thread.Sleep(15000);
@@ -117,6 +124,8 @@ namespace AlfaSoft.NobelPrizeLaureates
         {
             //To save last time it was opened
             DateTime appOpen = DateTime.Now;
+            Logger("App was opened in: " + appOpen);
+
             //If the txt doesn't exist it will be created
             bool txtExists = File.Exists(Directory.GetCurrentDirectory() + "\\AppLastClose.txt");
             if (!txtExists)
@@ -127,6 +136,7 @@ namespace AlfaSoft.NobelPrizeLaureates
             }
 
             DateTime lastClose = DateTime.Parse(File.ReadAllText(Directory.GetCurrentDirectory() + "\\AppLastClose.txt"));
+            Logger("App was last closed in: " + lastClose);
             TimeSpan span = appOpen.Subtract(lastClose);
 
             //Calculation in case the last time opened the app was under 60 seconds therefore a cooldown was needed
@@ -155,13 +165,22 @@ namespace AlfaSoft.NobelPrizeLaureates
                 Console.WriteLine("Closing console in 5 seconds ...");
                 Thread.Sleep(5000);
                 File.WriteAllText(Directory.GetCurrentDirectory() + "\\AppLastClose.txt", DateTime.Now.ToString());
-                Environment.Exit(0);
+                Logger("App closing with sucess at: " + DateTime.Now);
             }
             else
             {
                 Console.WriteLine("Closing app with no changes made");
-                Environment.Exit(0);
+                Logger("App closed with no new changes at: " + DateTime.Now);
             }
+
+            Logger("################################################### App Closing ###################################################");
+            Environment.Exit(0);
+        }
+
+        public static void Logger(string logStr)
+        {
+            File.AppendAllText(Directory.GetCurrentDirectory() + "\\Log.txt", Environment.NewLine);
+            File.AppendAllText(Directory.GetCurrentDirectory() + "\\Log.txt", logStr);
         }
     }
 }
