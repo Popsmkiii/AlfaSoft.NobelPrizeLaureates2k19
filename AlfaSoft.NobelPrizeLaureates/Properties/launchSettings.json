@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "AlfaSoft.NobelPrizeLaureates": {
+      "commandName": "Project",
+      "commandLineArgs": "C:\\Users\\Administrator\\Desktop\\File Ex\\Nobel Prize.txt"
+    }
+  }
+}
